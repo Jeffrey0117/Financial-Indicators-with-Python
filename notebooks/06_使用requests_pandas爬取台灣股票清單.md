@@ -1,65 +1,104 @@
-## 網頁爬蟲概念與反爬蟲技術
+## 使用 requests + pandas 爬取台灣股票清單
 
-網頁爬蟲（Web Crawler / Web Scraper）是自動化抓取網站資料的程式，能模擬使用者瀏覽網頁的行為，並將資料提取下來。從搜尋引擎到價格比對網站，再到個人資料分析，爬蟲的應用範圍極廣。
-
-同時，由於大量爬取可能影響網站效能，甚至涉及資料隱私與版權問題，許多網站會實施 **反爬蟲技術**（Anti-Scraping）來保護資源。
+在資料分析與量化交易領域中，取得最新的股票清單是基礎工作之一。這裡我們以台灣上市股票為例，使用 Python 的 `requests` 與 `pandas` 兩個套件，從證交所公開 API 抓取並整理成結構化資料。
 
 ---
 
-### 1. 網頁爬蟲的基本概念
-1. **目標**  
-   - 從網站收集資料，例如文字、圖片、影片、API 回傳的 JSON。
-2. **原理**  
-   - 向目標網站發送 HTTP 請求（GET/POST 等）。
-   - 取得網頁原始碼或 API 回應。
-   - 分析資料結構（HTML、JSON、XML 等）。
-   - 提取並儲存資料（CSV、資料庫等）。
-3. **常見用途**  
-   - 搜尋引擎索引（Google、Bing）。
-   - 價格比較與電商監控。
-   - 新聞、社群平台內容蒐集。
-   - 資料科學與 AI 訓練資料蒐集。
+### 1. 需求背景
+- **目標**：取得台灣上市股票（不含上櫃、興櫃）的代碼與名稱。
+- **來源**：臺灣證券交易所（TWSE）提供的 CSV / JSON 下載服務。
+- **工具**：
+  - `requests`：負責發送 HTTP 請求。
+  - `pandas`：讀取與處理 CSV 資料。
 
 ---
 
-### 2. 爬蟲流程示意
-1. **發送請求** → 使用 `requests`（Python）或 `axios`（Node.js）模擬瀏覽器請求。
-2. **解析內容** → 透過 `BeautifulSoup`、`lxml`、`cheerio` 等工具分析 HTML。
-3. **資料提取** → 根據標籤、屬性、正則表達式篩選資料。
-4. **資料儲存** → 寫入 CSV、JSON、SQL 或 NoSQL 資料庫。
-5. **重複與排程** → 定期抓取更新資料，可用 `cron` 或雲端任務排程。
+### 2. 安裝套件
+如果尚未安裝套件，可執行：
+```bash
+pip install requests pandas
+````
 
 ---
 
-### 3. 常見反爬蟲技術
-網站為了防止過度爬取，可能會採用以下方法：
+### 3. 取得股票清單
 
-| 反爬手段                     | 說明 | 常見對策 |
-|-----------------------------|------|----------|
-| **User-Agent 檢測**         | 檢查請求標頭是否為真實瀏覽器 | 偽造 UA（`headers` 設定） |
-| **IP 封鎖 / 限速**          | 過於頻繁請求會封 IP          | 限速、代理 IP、分散請求 |
-| **Cookies / Session 驗證**  | 需要登入或維持會話狀態       | 模擬登入流程、儲存 Cookie |
-| **JavaScript 動態渲染**     | 資料透過 JS 載入             | Selenium、Playwright、Puppeteer |
-| **Captcha 驗證**            | 要求輸入驗證碼              | 手動輸入或 OCR 輔助 |
-| **Token / 簽名檢查**         | 每次請求需帶動態 Token       | 分析 JS 程式碼產生 Token 邏輯 |
-| **行為檢測（滑鼠、滾動）**  | 驗證使用者互動               | 自動化模擬操作腳本 |
+臺灣證券交易所的上市股票清單 API：
+
+```
+https://isin.twse.com.tw/isin/C_public.jsp?strMode=2
+```
+
+此 API 會回傳 HTML 格式的資料，我們可以用 `pandas.read_html` 直接解析。
 
 ---
 
-### 4. 合法與道德界線
-爬蟲雖然技術上可行，但必須遵守：
-- **網站使用條款（Terms of Service）**
-- **Robots.txt 協議**
-- **當地法律**（例如 GDPR、個資法）
+### 4. 範例程式碼
 
-違反規範可能導致法律責任或封鎖。
+```python
+import requests
+import pandas as pd
+
+# 目標網址
+url = "https://isin.twse.com.tw/isin/C_public.jsp?strMode=2"
+
+# 發送請求
+headers = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/114.0.0.0 Safari/537.36"
+    )
+}
+resp = requests.get(url, headers=headers)
+resp.encoding = "big5"  # TWSE 使用 Big5 編碼
+
+# 解析 HTML 內的表格
+dfs = pd.read_html(resp.text)
+df = dfs[0]  # 第一個表格
+
+# 清理資料
+df.columns = df.iloc[0]  # 第一列作為欄位名稱
+df = df.iloc[1:]         # 去掉欄位列
+df = df.dropna(how="any")  # 移除空值列
+
+# 過濾出股票代號（代號為數字開頭）
+stock_list = df[df["有價證券代號及名稱"].str.match(r"^\d{4}")]
+
+# 分離代號與名稱
+stock_list[["代號", "名稱"]] = stock_list["有價證券代號及名稱"].str.split("　", expand=True)
+
+# 選擇需要的欄位
+stock_list = stock_list[["代號", "名稱"]]
+
+# 輸出結果
+print(stock_list.head())
+
+# 可選：存成 CSV
+stock_list.to_csv("twse_stock_list.csv", index=False, encoding="utf-8-sig")
+```
 
 ---
 
-### 5. 小結
-- 爬蟲本質是模擬瀏覽器行為去抓取資料。
-- 反爬蟲是網站保護資源與流量的手段。
-- 了解反爬技術能讓爬蟲更穩定，也能幫助網站開發者設計防護機制。
+### 5. 重要注意事項
+
+1. **編碼問題**
+   TWSE 網頁使用 Big5 編碼，需設定 `resp.encoding = "big5"` 才能正確解析中文。
+2. **HTML 表格解析**
+   `pandas.read_html` 可直接解析 HTML 中的 `<table>`，但結果會是 `DataFrame` 列表，需要挑選正確的表格。
+3. **資料清理**
+
+   * 原始資料第一列是欄位名稱，需手動設定。
+   * 資料中包含分類標題（如「水泥工業」），需要過濾掉。
+4. **自動化更新**
+   若要定期更新，可搭配排程（Windows Task Scheduler 或 Linux cron）。
+
+---
+
+### 6. 小結
+
+透過 `requests` + `pandas`，我們可以快速從公開 API 取得台灣股票清單並整理成結構化資料。這個方法適合建立股票代號查詢表、批次下載財報或股價資料的前置步驟。
+
 ```
 
 ---
