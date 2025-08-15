@@ -1,79 +1,83 @@
-# Python Financial Strategy Development
+# Python 金融策略開發
 
-The focus is on **practical, hands-on development** of data acquisition, indicator construction, backtesting, and automation tools — all in Python.
+本專案專注於**實用的程式開發**，涵蓋數據獲取、指標建構、回測和自動化工具的開發 — 全部使用 Python 實作。
 
-## Learning Scope
+## 學習範圍
 
-### 1. Development Basics
+### 1. 開發基礎
 
-* Virtual environment setup and management
-* Using `requirements.txt`
-* Integration with VS Code
-* Accessing and managing example code from GitHub
+* 虛擬環境設置與管理
+* 使用 `requirements.txt` 管理套件
+* VS Code 整合開發環境設定
+* 從 GitHub 存取與管理範例程式碼
 
-### 2. Data Acquisition
+### 2. 數據獲取
 
-* Web scraping concepts and anti-bot techniques
-* Scraping Taiwan stock lists with `requests` + `pandas`
-* Retrieving market quotes via HTML parsing (`BeautifulSoup`)
-* Gathering financial news headlines, dates, and content
-* Accessing TWSE institutional investor daily reports through APIs and JSON
+* 網頁爬蟲概念與反爬蟲技術
+* 使用 `requests` + `pandas` 爬取台灣股票清單
+* 透過 HTML 解析 (`BeautifulSoup`) 取得市場報價
+* 收集財經新聞標題、日期與內容
+* 透過 API 和 JSON 取得台灣證交所三大法人買賣日報
 
-### 3. Market Helpers & Stock Screening
+### 3. 市場工具與選股
 
-* Historical data retrieval with `yfinance`
-* Creating technical indicators with `ta` and `pandas`
-* Basic charting: candlestick, Bollinger Bands, volume plots
-* Email notifications with attachments
-* Securely managing credentials (encryption/decryption)
-* Trading day checks (holiday handling)
-* Example helper scripts:
+* 使用 `yfinance` 獲取歷史數據
+* 使用 `ta` 和 `pandas` 建立技術指標
+* 基本圖表繪製：K線圖、布林通道、成交量圖
+* 含附件的電子郵件通知
+* 憑證安全管理（加密/解密）
+* 交易日檢查（假日處理）
+* 實用腳本範例：
+  * 追蹤法人動向
+  * 高殖利率 + 低股價篩選
+  * 股價急跌 + 新聞關聯分析
+* 使用 Windows 工作排程器自動化
 
-  * Follow institutional investors
-  * High dividend yield + low price screening
-  * Sharp price drop + news correlation
-* Automation with Windows Task Scheduler
+### 4. 指標策略開發與評估
 
-### 4. Indicator-Based Strategy Writing & Evaluation
+* 使用 `pyfolio` 進行策略分析
+* 使用 `backtrader` 進行回測
+* 策略範例：
+  * 5MA 與 60MA 黃金/死亡交叉進出場
+  * 突破進場搭配加減碼與停損停利
+  * MACD + MA 多重條件進場
 
-* Strategy analysis with `pyfolio`
-* Backtesting with `backtrader`
-* Example strategies:
+### 5. AI、大數據與金融
 
-  * 5MA cross 60MA entry/exit
-  * Breakout entry with scaling and stop-loss/take-profit
-  * MACD + MA multi-condition entry
+* 應用 AI 和 NLP 進行市場分析
+* 案例研究：財經新聞關係抽取
+* 端到端工作流程：數據、特徵選擇、建模、預測、部署
 
-### 5. AI, Big Data, and Finance
-
-* Applying AI and NLP for market analysis
-* Case study: financial news relation extraction
-* End-to-end workflow: data, feature selection, modeling, prediction, deployment
-
-## Structure
+## 專案結構
 
 ```
 .
-├── data/              # Sample datasets
-├── notebooks/         # Step-by-step exercises in Jupyter
-├── src/               # Scripts organized by topic
-│   ├── scraping/
-│   ├── indicators/
-│   ├── strategies/
-│   └── utils/
-└── README.md
+├── data/              # 範例數據集
+├── notebooks/         # Jupyter 逐步教學
+├── src/               # 按主題組織的腳本
+│   ├── scraping/     # 爬蟲相關
+│   ├── indicators/   # 技術指標
+│   ├── strategies/   # 交易策略
+│   └── utils/        # 工具函數
+└── README.md         # 本文件
 ```
 
-## Environment Setup
+## 環境設置
 
 ```bash
+# 建立虛擬環境
 python -m venv venv
-source venv/bin/activate   # or venv\Scripts\activate on Windows
+
+# 啟動虛擬環境 (Windows)
+venv\Scripts\activate
+
+# 安裝所需套件
 pip install -r requirements.txt
 ```
 
-## Notes
+## 注意事項
 
-* This repository is for **educational purposes** only.
-* Code examples are simplified for learning clarity; adapt them for production use.
-* Always comply with data source terms of service when scraping or automating requests.
+* 本專案僅供**教育學習**使用
+* 範例代碼為教學目的簡化，實際應用時請根據需求調整
+* 使用爬蟲時請遵守目標網站的服務條款與規範
+* 投資有風險，本專案不構成任何投資建議
